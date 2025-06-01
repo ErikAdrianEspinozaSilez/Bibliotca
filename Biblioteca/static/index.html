@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Biblioteca</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary: #4e73df;
+            --success: #1cc88a;
+            --info: #36b9cc;
+            --warning: #f6c23e;
+            --danger: #e74a3b;
+            --reportes: #6f42c1;
+            --notificaciones: #fd7e14; 
+        }
+        .card-header {
+            font-weight: 600;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .badge-available {
+            background-color: var(--success);
+        }
+        .badge-unavailable {
+            background-color: var(--danger);
+        }
+        .nav-tabs .nav-link.active {
+            font-weight: 600;
+        }
+        .bg-reportes {
+            background-color: var(--reportes);
+        }
+        .text-reportes {
+            color: var(--reportes);
+        }
+        .btn-reportes {
+            background-color: var(--reportes);
+            color: white;
+        }
+        .btn-reportes:hover {
+            background-color: #563d7c;
+            color: white;
+        }
+        .bg-notificaciones {
+            background-color: var(--notificaciones);
+        }
+        .text-notificaciones {
+            color: var(--notificaciones);
+        }
+        .btn-notificaciones {
+            background-color: var(--notificaciones);
+            color: white;
+        }
+        .btn-notificaciones:hover {
+            background-color: #e06c12; /* Tono más oscuro para hover */
+            color: white;
+        }
+        .btn-tipo-reporte {
+            background-color: #CFFF04;
+            color: black;
+            font-weight: 500;
+        }
+        .btn-tipo-reporte:hover {
+            background-color: #b7e004;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay">
+        <div class="spinner-border text-light" style="width: 3rem; height: 3rem;"></div>
+    </div>
+
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="bi bi-book"></i> Sistema de Biblioteca
+            </h1>
+            <div>
+                <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#modalLibro">
+                    <i class="bi bi-plus-circle"></i> Libro
+                </button>
+                <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalUsuario">
+                    <i class="bi bi-person-plus"></i> Usuario
+                </button>
+                <button class="btn btn-info me-2" data-bs-toggle="modal" data-bs-target="#modalPrestamo">
+                    <i class="bi bi-plus-circle text-white"></i> Préstamo
+                </button>
+                <button class="btn btn-reportes me-2" data-bs-toggle="modal" data-bs-target="#modalTipoReporte">
+                    <i class="bi bi-file-earmark-text text-white"></i> Reporte
+                </button>
+                <button class="btn btn-notificaciones me-2" data-bs-toggle="modal" data-bs-target="#modalNotificacion">
+                    <i class="bi bi-bell text-white"></i> Notificación
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Sección Libros -->
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center bg-primary text-white">
+                        <h6 class="m-0 font-weight-bold">Libros</h6>
+                        <span class="badge bg-white text-primary" id="contadorLibros">0</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Título</th>
+                                        <th>Autor</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaLibros"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección Usuarios -->
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center bg-success text-white">
+                        <h6 class="m-0 font-weight-bold">Usuarios</h6>
+                        <span class="badge bg-white text-success" id="contadorUsuarios">0</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Correo</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaUsuarios"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección Préstamos -->
+            <div class="col-lg-4 mb-4">
+                <ul class="nav nav-tabs" id="inventarioTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="disponibles-tab" data-bs-toggle="tab" data-bs-target="#disponibles" type="button">
+                            Disponibles
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="prestamos-tab" data-bs-toggle="tab" data-bs-target="#prestamos" type="button">
+                            Préstamos
+                        </button>
+                    </li>
+                </ul>
+                <div class="card shadow">
+                    <div class="card-header py-3 bg-info text-white">
+                        <h6 class="m-0 font-weight-bold">Gestión de Inventario</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="tab-content" id="inventarioContent">
+                            <div class="tab-pane fade show active" id="disponibles" role="tabpanel">
+                                <table class="table table-hover mb-0">
+                                    <tbody id="tablaDisponibles"></tbody>
+                                </table>
+                            </div>
+                            <div class="tab-pane fade" id="prestamos" role="tabpanel">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Libro</th>
+                                            <th>Usuario</th>
+                                            <th>Fecha de Préstamo</th>
+                                            <th>Fecha de Devolución</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaPrestamos"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección Reportes -->
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center bg-reportes text-white">
+                        <h6 class="m-0 font-weight-bold">Reportes</h6>
+                        <span class="badge bg-white text-reportes" id="contadorReportes">0</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaReportes"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección Notificaciones -->
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center bg-notificaciones text-white">
+                        <h6 class="m-0 font-weight-bold">Notificaciones</h6>
+                        <span class="badge bg-white text-notificaciones" id="contadorNotificaciones">0</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Usuario</th>
+                                        <th>Mensaje</th>
+                                        <th>Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaNotificaciones"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales -->
+    <!-- Modal Libro -->
+    <div class="modal fade" id="modalLibro" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLibroTitulo">Agregar Libro</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formLibro">
+                        <input type="hidden" id="libroId">
+                        <div class="mb-3">
+                            <label for="libroTitulo" class="form-label">Título</label>
+                            <input type="text" class="form-control" id="libroTitulo" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="libroAutor" class="form-label">Autor</label>
+                            <input type="text" class="form-control" id="libroAutor" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="libroDisponible">
+                            <label class="form-check-label" for="libroDisponible">Disponible</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnGuardarLibro">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Usuario -->
+    <div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalUsuarioTitulo">Agregar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formUsuario">
+                        <input type="hidden" id="usuarioId">
+                        <div class="mb-3">
+                            <label for="usuarioNombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="usuarioNombre" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="usuarioCorreo" class="form-label">Correo</label>
+                            <input type="email" class="form-control" id="usuarioCorreo" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="btnGuardarUsuario">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Préstamo -->
+    <div class="modal fade" id="modalPrestamo" tabindex="-1" aria-labelledby="modalPrestamoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalPrestamoTitulo">Agregar Préstamo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formPrestamo">
+                        <div class="mb-3">
+                            <label for="prestamoLibro" class="form-label">Libro</label>
+                            <select class="form-control" id="prestamoLibro" required>
+                                <!-- Opciones generadas dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="prestamoUsuario" class="form-label">Usuario</label>
+                            <select class="form-control" id="prestamoUsuario" required>
+                                <!-- Opciones generadas dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="prestamoFechaDevolucion" class="form-label">Fecha de Devolución</label>
+                            <input type="date" class="form-control" id="prestamoFechaDevolucion">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-info" id="btnGuardarPrestamo">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para seleccionar el tipo de reporte -->
+    <div class="modal fade" id="modalTipoReporte" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Seleccionar Tipo de Reporte</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-around">
+                        <button class="btn btn-tipo-reporte" data-tipo="tabla">Tabla</button>
+                        <button class="btn btn-tipo-reporte" data-tipo="grafica">Gráfico</button>
+                        <button class="btn btn-tipo-reporte" data-tipo="comprobante">Comprobante</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para generar reporte de tabla -->
+    <div class="modal fade" id="modalReporteTabla" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generar Reporte de Tabla</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formReporteTabla">
+                        <div class="mb-3">
+                            <label for="tablaReporte" class="form-label">Seleccionar Tabla</label>
+                            <select class="form-control" id="tablaReporte" required>
+                                <option value="prestamos">Préstamos</option>
+                                <option value="libros">Libros</option>
+                                <option value="usuarios">Usuarios</option>
+                                <option value="disponibles">Disponibles</option>
+                                <option value="prestamos">Préstamos</option>
+                                <option value="reportes">Reportes</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-reportes" id="btnGenerarReporteTabla">Generar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para generar reporte de gráfico -->
+    <div class="modal fade" id="modalReporteGrafico" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generar Reporte de Gráfico</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formReporteGrafico">
+                        <div class="mb-3">
+                            <label for="parametroGrafico" class="form-label">Seleccionar Parámetro</label>
+                            <select class="form-control" id="parametroGrafico" required>
+                                <option value="libro_mas_solicitado">Libro más solicitado</option>
+                                <option value="prestamos_por_mes">Préstamos por mes</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-reportes" id="btnGenerarReporteGrafico">Generar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para generar comprobante -->
+    <div class="modal fade" id="modalReporteComprobante" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generar Comprobante</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formReporteComprobante">
+                        <div class="mb-3">
+                            <label for="prestamoComprobante" class="form-label">Seleccionar Préstamo</label>
+                            <select class="form-control" id="prestamoComprobante" required>
+                                <!-- Opciones generadas dinámicamente -->
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-reportes" id="btnGenerarReporteComprobante">Generar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para enviar notificación -->
+    <div class="modal fade" id="modalNotificacion" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Enviar Notificación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNotificacion">
+                        <div class="mb-3">
+                            <label for="notificacionUsuario" class="form-label">Seleccionar Usuario</label>
+                            <select class="form-control" id="notificacionUsuario" required>
+                                <!-- Opciones generadas dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notificacionMensaje" class="form-label">Mensaje</label>
+                            <input type="text" class="form-control" id="notificacionMensaje" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-notificaciones" id="btnEnviarNotificacion">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Estado global
+        const estado = {
+            libros: [],
+            usuarios: [],
+            disponibles: [],
+            prestamos: [],
+            reportes: [],
+            notificaciones: [],
+            modoEdicion: false
+        };
+
+        // Elementos del DOM
+        const DOM = {
+            loading: document.querySelector('.loading-overlay'),
+            tablaLibros: document.getElementById('tablaLibros'),
+            tablaUsuarios: document.getElementById('tablaUsuarios'),
+            tablaDisponibles: document.getElementById('tablaDisponibles'),
+            tablaPrestamos: document.getElementById('tablaPrestamos'),
+            contadorLibros: document.getElementById('contadorLibros'),
+            contadorUsuarios: document.getElementById('contadorUsuarios'),
+            contadorReportes: document.getElementById('contadorReportes'),
+            contadorNotificaciones: document.getElementById('contadorNotificaciones'),
+            tablaReportes: document.getElementById('tablaReportes'),
+            tablaNotificaciones: document.getElementById('tablaNotificaciones'),
+            formLibro: document.getElementById('formLibro'),
+            formUsuario: document.getElementById('formUsuario'),
+            formPrestamo: document.getElementById('formPrestamo'),
+            formReporteTabla: document.getElementById('formReporteTabla'),
+            formReporteGrafico: document.getElementById('formReporteGrafico'),
+            formReporteComprobante: document.getElementById('formReporteComprobante'),
+            formNotificacion: document.getElementById('formNotificacion'),
+            btnGuardarLibro: document.getElementById('btnGuardarLibro'),
+            btnGuardarUsuario: document.getElementById('btnGuardarUsuario'),
+            btnGuardarPrestamo: document.getElementById('btnGuardarPrestamo'),
+            btnGenerarReporteTabla: document.getElementById('btnGenerarReporteTabla'),
+            btnGenerarReporteGrafico: document.getElementById('btnGenerarReporteGrafico'),
+            btnGenerarReporteComprobante: document.getElementById('btnGenerarReporteComprobante'),
+            btnEnviarNotificacion: document.getElementById('btnEnviarNotificacion'),
+            modalLibro: new bootstrap.Modal(document.getElementById('modalLibro')),
+            modalUsuario: new bootstrap.Modal(document.getElementById('modalUsuario')),
+            modalPrestamo: new bootstrap.Modal(document.getElementById('modalPrestamo')),
+            modalTipoReporte: new bootstrap.Modal(document.getElementById('modalTipoReporte')),
+            modalReporteTabla: new bootstrap.Modal(document.getElementById('modalReporteTabla')),
+            modalReporteGrafico: new bootstrap.Modal(document.getElementById('modalReporteGrafico')),
+            modalReporteComprobante: new bootstrap.Modal(document.getElementById('modalReporteComprobante')),
+            modalNotificacion: new bootstrap.Modal(document.getElementById('modalNotificacion')),
+            selectLibro: document.getElementById('prestamoLibro'),
+            selectUsuario: document.getElementById('prestamoUsuario'),
+            selectPrestamoComprobante: document.getElementById('prestamoComprobante'),
+            selectNotificacionUsuario: document.getElementById('notificacionUsuario')
+        };
+
+        // Funciones de utilidad
+        const utils = {
+            toggleLoading: (show) => DOM.loading.style.display = show ? 'flex' : 'none',
+            mostrarError: (error) => {
+                console.error(error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Ocurrió un error',
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#e74a3b'
+                });
+            },
+            confirmar: async (mensaje) => {
+                const result = await Swal.fire({
+                    title: 'Confirmar',
+                    text: mensaje,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1cc88a',
+                    cancelButtonColor: '#e74a3b',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                });
+                return result.isConfirmed;
+            }
+        };
+
+        // Servicio API
+        const api = {
+            async get(url) {
+                utils.toggleLoading(true);
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(await response.text());
+                    return await response.json();
+                } catch (error) {
+                    utils.mostrarError(error);
+                    throw error;
+                } finally {
+                    utils.toggleLoading(false);
+                }
+            },
+
+            async post(url, data) {
+                utils.toggleLoading(true);
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    if (!response.ok) throw new Error(await response.text());
+                    return await response.json();
+                } catch (error) {
+                    utils.mostrarError(error);
+                    throw error;
+                } finally {
+                    utils.toggleLoading(false);
+                }
+            },
+
+            async put(url, data) {
+                utils.toggleLoading(true);
+                try {
+                    const response = await fetch(url, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    if (!response.ok) throw new Error(await response.text());
+                    return await response.json();
+                } catch (error) {
+                    utils.mostrarError(error);
+                    throw error;
+                } finally {
+                    utils.toggleLoading(false);
+                }
+            },
+
+            async delete(url) {
+                utils.toggleLoading(true);
+                try {
+                    const response = await fetch(url, { method: 'DELETE' });
+                    if (!response.ok) throw new Error(await response.text());
+                    return await response.json();
+                } catch (error) {
+                    utils.mostrarError(error);
+                    throw error;
+                } finally {
+                    utils.toggleLoading(false);
+                }
+            },
+
+            async download(url) {
+                utils.toggleLoading(true);
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(await response.text());
+                    const blob = await response.blob();
+                    const urlBlob = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = urlBlob;
+                    a.download = response.headers.get('Content-Disposition')?.split('filename=')[1] || 'reporte.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(urlBlob);
+                } catch (error) {
+                    utils.mostrarError(error);
+                    throw error;
+                } finally {
+                    utils.toggleLoading(false);
+                }
+            }
+        };
+
+        // Controladores
+        const controlador = {
+            async cargarDatos() {
+                try {
+                    [estado.libros, estado.usuarios, estado.disponibles, estado.prestamos, estado.reportes, estado.notificaciones] = await Promise.all([
+                        api.get('/libros/'),
+                        api.get('/usuarios/'),
+                        api.get('/inventario/disponibles/'),
+                        api.get('/prestamos/'),
+                        api.get('/reportes/listar'),
+                        api.get('/notificaciones/')
+                    ]);
+                    
+                    vista.actualizarTablas();
+                    DOM.contadorLibros.textContent = estado.libros.length;
+                    DOM.contadorUsuarios.textContent = estado.usuarios.length;
+                    DOM.contadorReportes.textContent = estado.reportes.length;
+                    DOM.contadorNotificaciones.textContent = estado.notificaciones.length;
+                    this.actualizarSelects();
+                } catch (error) {
+                    console.error('Error cargando datos:', error);
+                }
+            },
+
+            actualizarSelects() {
+                // Actualizar select de libros disponibles
+                DOM.selectLibro.innerHTML = estado.disponibles.map(libro => `
+                    <option value="${libro.id}">${libro.titulo} - ${libro.autor}</option>
+                `).join('');
+                // Actualizar select de usuarios
+                DOM.selectUsuario.innerHTML = estado.usuarios.map(usuario => `
+                    <option value="${usuario.id}">${usuario.nombre}</option>
+                `).join('');
+                // Actualizar select de préstamos para comprobante
+                DOM.selectPrestamoComprobante.innerHTML = estado.prestamos.map(prestamo => `
+                    <option value="${prestamo.id}">${prestamo.libro} - ${prestamo.usuario}</option>
+                `).join('');
+                // Actualizar select de usuarios para notificaciones
+                DOM.selectNotificacionUsuario.innerHTML = estado.usuarios.map(usuario => `
+                    <option value="${usuario.id}">${usuario.nombre}</option>
+                `).join('');
+            },
+
+            async guardarLibro() {
+                const libro = {
+                    titulo: document.getElementById('libroTitulo').value,
+                    autor: document.getElementById('libroAutor').value,
+                    disponible: document.getElementById('libroDisponible').checked
+                };
+                
+                const id = document.getElementById('libroId').value;
+                
+                try {
+                    if (id) {
+                        await api.put(`/libros/${id}`, libro);
+                    } else {
+                        await api.post('/libros/', libro);
+                    }
+                    DOM.modalLibro.hide();
+                    await this.cargarDatos();
+                } catch (error) {
+                    console.error('Error guardando libro:', error);
+                }
+            },
+
+            async eliminarLibro(id) {
+                if (!utils.confirmar('¿Eliminar este libro?')) return;
+                try {
+                    await api.delete(`/libros/${id}`);
+                    await this.cargarDatos();
+                } catch (error) {
+                    console.error('Error eliminando libro:', error);
+                }
+            },
+
+            async editarLibro(libro) {
+                document.getElementById('libroId').value = libro.id;
+                document.getElementById('libroTitulo').value = libro.titulo;
+                document.getElementById('libroAutor').value = libro.autor;
+                document.getElementById('libroDisponible').checked = libro.disponible;
+                document.getElementById('modalLibroTitulo').textContent = 'Editar Libro';
+                DOM.modalLibro.show();
+            },
+
+            async guardarUsuario() {
+                const usuario = {
+                    nombre: document.getElementById('usuarioNombre').value,
+                    correo: document.getElementById('usuarioCorreo').value
+                };
+                
+                const id = document.getElementById('usuarioId').value;
+                
+                try {
+                    if (id) {
+                        await api.put(`/usuarios/${id}`, usuario);
+                    } else {
+                        await api.post('/usuarios/', usuario);
+                    }
+                    DOM.modalUsuario.hide();
+                    await this.cargarDatos();
+                } catch (error) {
+                    console.error('Error guardando usuario:', error);
+                }
+            },
+
+            async eliminarUsuario(id) {
+                if (!utils.confirmar('¿Eliminar este usuario?')) return;
+                try {
+                    await api.delete(`/usuarios/${id}`);
+                    await this.cargarDatos();
+                } catch (error) {
+                    console.error('Error eliminando usuario:', error);
+                }
+            },
+
+            async editarUsuario(usuario) {
+                document.getElementById('usuarioId').value = usuario.id;
+                document.getElementById('usuarioNombre').value = usuario.nombre;
+                document.getElementById('usuarioCorreo').value = usuario.correo;
+                const modalUsuarioTitulo = document.getElementById('modalUsuarioTitulo');
+                if (modalUsuarioTitulo) {
+                    modalUsuarioTitulo.textContent = 'Editar Usuario';
+                }
+                DOM.modalUsuario.show();
+            },
+
+            async guardarPrestamo() {
+                const fechaDevolucionRaw = document.getElementById('prestamoFechaDevolucion').value;
+                console.log('fecha_devolucion raw:', fechaDevolucionRaw);
+
+                const prestamo = {
+                    id_libro: parseInt(document.getElementById('prestamoLibro').value),
+                    id_usuario: parseInt(document.getElementById('prestamoUsuario').value),
+                    fecha_devolucion: fechaDevolucionRaw || null,
+                    devuelto: document.getElementById('prestamoDevuelto')?.checked || false
+                };
+                
+                console.log('Datos enviados al backend:', prestamo);
+                        
+                try {
+                    await api.post('/prestamos/', prestamo);
+                    DOM.modalPrestamo.hide();
+                    await this.cargarDatos();
+                } catch (error) {
+                    console.error('Error guardando préstamo:', error);
+                }
+            },
+
+            seleccionarTipoReporte(tipo) {
+                DOM.modalTipoReporte.hide();
+                if (tipo === 'tabla') {
+                    DOM.modalReporteTabla.show();
+                } else if (tipo === 'grafica') {
+                    DOM.modalReporteGrafico.show();
+                } else if (tipo === 'comprobante') {
+                    DOM.modalReporteComprobante.show();
+                }
+            },
+
+            async generarReporteTabla() {
+                const tabla = document.getElementById('tablaReporte').value;
+                try {
+                    await api.download(`/reportes/?tipo=tabla&tabla=${encodeURIComponent(tabla)}`);
+                    DOM.modalReporteTabla.hide();
+                    await this.cargarDatos();
+                } catch (error) {
+                    console.error('Error generando reporte de tabla:', error);
+                }
+            },
+
+            async generarReporteGrafico() {
+                const parametro = document.getElementById('parametroGrafico').value;
+                try {
+                    await api.download(`/reportes/?tipo=grafico&filtros=${encodeURIComponent(JSON.stringify({parametro}))}`);
+                    DOM.modalReporteGrafico.hide();
+                    await this.cargarDatos();
+                } catch (error) {
+                    console.error('Error generando reporte gráfico:', error);
+                }
+            },
+
+            async generarReporteComprobante() {
+                const idPrestamo = parseInt(document.getElementById('prestamoComprobante').value);
+                const filtros = JSON.stringify({ id_prestamo: idPrestamo });
+                try {
+                    await api.download(`/reportes/?tipo=comprobante&filtros=${encodeURIComponent(filtros)}`);
+                    DOM.modalReporteComprobante.hide();
+                    await this.cargarDatos();
+                } catch (error) {
+                    console.error('Error generando comprobante:', error);
+                }
+            },
+
+            async enviarNotificacion() {
+                const usuarioId = parseInt(document.getElementById('notificacionUsuario').value);
+                const mensaje = document.getElementById('notificacionMensaje').value;
+                try {
+                    await api.post('/notificaciones/', { usuario_id: usuarioId, mensaje });
+                    DOM.modalNotificacion.hide();
+                    await this.cargarDatos();
+                } catch (error) {
+                    console.error('Error enviando notificación:', error);
+                }
+            }
+        };
+
+        // Vista
+        const vista = {
+            actualizarTablas() {
+                this.actualizarTablaLibros();
+                this.actualizarTablaUsuarios();
+                this.actualizarTablaDisponibles();
+                this.actualizarTablaPrestamos();
+                this.actualizarTablaReportes();
+                this.actualizarTablaNotificaciones();
+            },
+
+            actualizarTablaLibros() {
+                DOM.tablaLibros.innerHTML = estado.libros.map(libro => `
+                    <tr>
+                        <td>${libro.titulo}</td>
+                        <td>${libro.autor}</td>
+                        <td class="text-nowrap">
+                            <button class="btn btn-sm btn-warning me-1 btn-editar-libro" data-id="${libro.id}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-eliminar-libro" data-id="${libro.id}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                document.querySelectorAll('.btn-editar-libro').forEach(boton => {
+                    const id = parseInt(boton.getAttribute('data-id'));
+                    const libro = estado.libros.find(l => l.id === id);
+                    boton.addEventListener('click', () => controlador.editarLibro(libro));
+                });
+
+                document.querySelectorAll('.btn-eliminar-libro').forEach(boton => {
+                    const id = parseInt(boton.getAttribute('data-id'));
+                    boton.addEventListener('click', () => controlador.eliminarLibro(id));
+                });
+            },
+
+            actualizarTablaUsuarios() {
+                DOM.tablaUsuarios.innerHTML = estado.usuarios.map(usuario => `
+                    <tr>
+                        <td>${usuario.nombre}</td>
+                        <td>${usuario.correo}</td>
+                        <td class="text-nowrap">
+                            <button class="btn btn-sm btn-warning me-1 btn-editar-usuario" data-id="${usuario.id}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-eliminar-usuario" data-id="${usuario.id}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                document.querySelectorAll('.btn-editar-usuario').forEach(boton => {
+                    const id = parseInt(boton.getAttribute('data-id'));
+                    const usuario = estado.usuarios.find(u => u.id === id);
+                    boton.addEventListener('click', () => controlador.editarUsuario(usuario));
+                });
+
+                document.querySelectorAll('.btn-eliminar-usuario').forEach(boton => {
+                    const id = parseInt(boton.getAttribute('data-id'));
+                    boton.addEventListener('click', () => controlador.eliminarUsuario(id));
+                });
+            },
+
+            actualizarTablaDisponibles() {
+                DOM.tablaDisponibles.innerHTML = estado.disponibles.map(libro => `
+                    <tr>
+                        <td>
+                            <strong>${libro.titulo}</strong>
+                            <div class="text-muted small">${libro.autor}</div>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            actualizarTablaPrestamos() {
+                console.log('Datos de prestamos:', estado.prestamos);
+                DOM.tablaPrestamos.innerHTML = estado.prestamos.map(prestamo => {
+                    console.log(`Prestamo: ${prestamo.libro}, fecha_devolucion: ${prestamo.fecha_devolucion}, tipo: ${typeof prestamo.fecha_devolucion}`);
+                    return `
+                        <tr>
+                            <td>${prestamo.libro}</td>
+                            <td>${prestamo.usuario}</td>
+                            <td>${prestamo.fecha_prestamo ? new Date(prestamo.fecha_prestamo + 'T00:00:00').toLocaleDateString('es-ES', { timeZone: 'UTC' }) : 'N/A'}</td>
+                            <td>${prestamo.fecha_devolucion ? new Date(prestamo.fecha_devolucion + 'T00:00:00').toLocaleDateString('es-ES', { timeZone: 'UTC' }) : 'N/A'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            },
+
+            actualizarTablaReportes() {
+                DOM.tablaReportes.innerHTML = estado.reportes.map(reporte => `
+                    <tr>
+                        <td>${reporte.id}</td>
+                        <td>${new Date(reporte.fecha).toLocaleString('es-ES')}</td>
+                        <td>${reporte.tipo_descripcion}</td>
+                    </tr>
+                `).join('');
+            },
+
+            actualizarTablaNotificaciones() {
+                DOM.tablaNotificaciones.innerHTML = estado.notificaciones.map(notif => `
+                    <tr>
+                        <td>${notif.id}</td>
+                        <td>${notif.usuario}</td>
+                        <td>${notif.mensaje}</td>
+                        <td>${new Date(notif.fecha).toLocaleString('es-ES')}</td>
+                    </tr>
+                `).join('');
+            }
+        };
+
+        // Event Listeners
+        DOM.btnGuardarLibro.addEventListener('click', () => controlador.guardarLibro());
+        DOM.btnGuardarUsuario.addEventListener('click', () => controlador.guardarUsuario());
+        DOM.btnGuardarPrestamo.addEventListener('click', () => controlador.guardarPrestamo());
+        DOM.btnGenerarReporteTabla.addEventListener('click', () => controlador.generarReporteTabla());
+        DOM.btnGenerarReporteGrafico.addEventListener('click', () => controlador.generarReporteGrafico());
+        DOM.btnGenerarReporteComprobante.addEventListener('click', () => controlador.generarReporteComprobante());
+        DOM.btnEnviarNotificacion.addEventListener('click', () => controlador.enviarNotificacion());
+
+        document.querySelectorAll('.btn-tipo-reporte').forEach(boton => {
+            const tipo = boton.getAttribute('data-tipo');
+            boton.addEventListener('click', () => controlador.seleccionarTipoReporte(tipo));
+        });
+
+        document.getElementById('modalLibro').addEventListener('hidden.bs.modal', () => {
+            DOM.formLibro.reset();
+            const modalLibroTitulo = document.getElementById('modalLibroTitulo');
+            if (modalLibroTitulo) {
+                modalLibroTitulo.textContent = 'Agregar Libro';
+            }
+            document.getElementById('libroId').value = '';
+        });
+
+        document.getElementById('modalUsuario').addEventListener('hidden.bs.modal', () => {
+            DOM.formUsuario.reset();
+            const modalUsuarioTitulo = document.getElementById('modalUsuarioTitulo');
+            if (modalUsuarioTitulo) {
+                modalUsuarioTitulo.textContent = 'Agregar Usuario';
+            }
+            document.getElementById('usuarioId').value = '';
+        });
+
+        document.getElementById('modalPrestamo').addEventListener('hidden.bs.modal', () => {
+            DOM.formPrestamo.reset();
+            const modalPrestamoTitulo = document.getElementById('modalPrestamoTitulo');
+            if (modalPrestamoTitulo) {
+                modalPrestamoTitulo.textContent = 'Agregar Préstamo';
+            }
+        });
+
+        document.getElementById('modalReporteTabla').addEventListener('hidden.bs.modal', () => {
+            DOM.formReporteTabla.reset();
+        });
+
+        document.getElementById('modalReporteGrafico').addEventListener('hidden.bs.modal', () => {
+            DOM.formReporteGrafico.reset();
+        });
+
+        document.getElementById('modalReporteComprobante').addEventListener('hidden.bs.modal', () => {
+            DOM.formReporteComprobante.reset();
+        });
+
+        document.getElementById('modalNotificacion').addEventListener('hidden.bs.modal', () => {
+            DOM.formNotificacion.reset();
+        });
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            controlador.cargarDatos();
+        });
+
+        // Exponer funciones globales
+        window.controlador = controlador;
+    </script>
+</body>
+</html>

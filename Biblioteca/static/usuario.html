@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificaciones por Usuario - Sistema Biblioteca</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Añadimos el CDN de SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary: #4e73df;
+            --success: #1cc88a;
+            --info: #36b9cc;
+            --warning: #f6c23e;
+            --danger: #e74a3b;
+            --reportes: #6f42c1;
+            --notificaciones: #fd7e14; 
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .bg-notificaciones {
+            background-color: var(--notificaciones);
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay">
+        <div class="spinner-border text-light" style="width: 3rem; height: 3rem;"></div>
+    </div>
+
+    <div class="container-fluid py-4">
+        <h1 class="h3 mb-4 text-gray-800">
+            <i class="bi bi-bell"></i> Seleccione Usuario
+        </h1>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <select class="form-control" id="selectUsuario">
+                    <option value="">Seleccione un usuario</option>
+                    <!-- Opciones generadas dinámicamente -->
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header py-3 bg-notificaciones text-white">
+                        <h6 class="m-0 font-weight-bold">Notificaciones</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Usuario</th>
+                                        <th>Mensaje</th>
+                                        <th>Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaNotificaciones"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Estado global
+        const estado = {
+            usuarios: [],
+            notificaciones: []
+        };
+
+        // Elementos del DOM
+        const DOM = {
+            loading: document.querySelector('.loading-overlay'),
+            selectUsuario: document.getElementById('selectUsuario'),
+            tablaNotificaciones: document.getElementById('tablaNotificaciones')
+        };
+
+        // Funciones de utilidad
+        const utils = {
+            toggleLoading: (show) => DOM.loading.style.display = show ? 'flex' : 'none',
+            mostrarError: (error) => {
+                console.error(error);
+                // Reemplazamos alert por SweetAlert2
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Ocurrió un error',
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#fd7e14' // Color naranja para el botón, igual que --notificaciones
+                });
+            }
+        };
+
+        // Servicio API
+        const api = {
+            async get(url) {
+                utils.toggleLoading(true);
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(await response.text());
+                    return await response.json();
+                } catch (error) {
+                    utils.mostrarError(error);
+                    throw error;
+                } finally {
+                    utils.toggleLoading(false);
+                }
+            }
+        };
+
+        // Controlador
+        const controlador = {
+            async cargarDatos() {
+                try {
+                    estado.usuarios = await api.get('/usuarios/');
+                    this.actualizarSelectUsuarios();
+                } catch (error) {
+                    console.error('Error cargando usuarios:', error);
+                }
+            },
+
+            actualizarSelectUsuarios() {
+                DOM.selectUsuario.innerHTML = '<option value="">Seleccione un usuario</option>' +
+                    estado.usuarios.map(usuario => `
+                        <option value="${usuario.id}">${usuario.nombre}</option>
+                    `).join('');
+            },
+
+            async cargarNotificaciones() {
+                const idUsuario = parseInt(DOM.selectUsuario.value);
+                if (!idUsuario) {
+                    estado.notificaciones = [];
+                    vista.actualizarTablaNotificaciones();
+                    return;
+                }
+                try {
+                    estado.notificaciones = await api.get(`/notificaciones/usuario/${idUsuario}`);
+                    vista.actualizarTablaNotificaciones();
+                } catch (error) {
+                    console.error('Error cargando notificaciones:', error);
+                }
+            }
+        };
+
+        // Vista
+        const vista = {
+            actualizarTablaNotificaciones() {
+                DOM.tablaNotificaciones.innerHTML = estado.notificaciones.map(notif => `
+                    <tr>
+                        <td>${notif.id}</td>
+                        <td>${notif.usuario}</td>
+                        <td>${notif.mensaje}</td>
+                        <td>${new Date(notif.fecha).toLocaleString('es-ES')}</td>
+                    </tr>
+                `).join('');
+            }
+        };
+
+        // Event Listeners
+        DOM.selectUsuario.addEventListener('change', () => controlador.cargarNotificaciones());
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            controlador.cargarDatos();
+        });
+    </script>
+</body>
+</html>
