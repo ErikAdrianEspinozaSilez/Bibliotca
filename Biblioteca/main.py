@@ -554,11 +554,10 @@ def actualizar_usuario(id: int, usuario: UsuarioCreate):
 
 @app.delete("/usuarios/{id}")
 def eliminar_usuario(id: int):
-    usuarios = servicio_usuarios.listar()
-    if not any(u["id"] == id for u in usuarios):
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    servicio_usuarios.bd.ejecutar("DELETE FROM usuario WHERE id = %s", (id,))
-    return {"mensaje": "Usuario eliminado correctamente"}
+    try:
+        return servicio_usuarios.eliminar(id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="No se puede eliminar el usuario. Tiene registros asociados.")
 
 # Inventario
 @app.get("/inventario/disponibles/", response_model=List[Libro])
