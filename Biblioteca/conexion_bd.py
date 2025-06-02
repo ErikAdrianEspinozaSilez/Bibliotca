@@ -38,3 +38,7 @@ class ConexionBD:
                 yield cursor, conexion
             finally:
                 cursor.close()
+    def ejecutar(self, query, params=None):
+        with self.obtener_cursor() as (cursor, conexion):
+            cursor.execute(query, params)
+            conexion.commit()
