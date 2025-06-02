@@ -194,7 +194,7 @@ class ServicioPrestamos:
 
         conexion.commit()
 
-        # Crear notificación automática
+        # ✅ Crear notificación automática
         notificacion_servicio = ServicioNotificaciones()
         notificacion_servicio.crear(
             usuario_id=prestamo.id_usuario,
@@ -572,6 +572,10 @@ def eliminar_usuario(id: int):
 @app.get("/inventario/disponibles/", response_model=List[Libro])
 def obtener_disponibles():
     return servicio_inventario.obtener_disponibles()
+@app.get("/inventario/contador/")
+def contar_disponibles():
+    disponibles = servicio_inventario.obtener_disponibles()
+    return {"total_disponibles": len(disponibles)}
 
 # Préstamos
 @app.post("/prestamos/")
