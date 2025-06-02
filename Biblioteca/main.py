@@ -501,13 +501,16 @@ def crear_libro(libro: LibroCreate):
     })
 
 @app.put("/libros/{id}")
-def actualizar_libro(id: int, libro: LibroCreate):
-    return servicio_libros.actualizar(id, {
-        "titulo": libro.titulo,
-        "autor": libro.autor,
-        "disponible": libro.disponible
-    })
-
+def editar_libro(id: int, libro: LibroCreate):
+    if not libro.titulo.strip() or not libro.autor.strip():
+        raise HTTPException(status_code=400, detail="Título y autor no pueden estar vacíos.")
+    
+    servicio_libros.bd.ejecutar(
+        "UPDATE libro SET titulo = %s, autor = %s WHERE id = %s",
+        (libro.titulo.strip(), libro.autor.strip(), id)
+    )
+    
+    return {"mensaje": "Libro actualizado correctamente"}
 @app.delete("/libros/{id}")
 def eliminar_libro(id: int):
     return servicio_libros.eliminar(id)
