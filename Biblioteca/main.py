@@ -168,32 +168,41 @@ class ServicioPrestamos:
     def crear_prestamo(self, prestamo: PrestamoCreate) -> dict:
         with self.bd.obtener_cursor() as (cursor, conexion):
             cursor.execute("SELECT disponible FROM libro WHERE id = %s", (prestamo.id_libro,))
-            libro = cursor.fetchone()
-            
-            if not libro or not libro['disponible']:
-                raise HTTPException(status_code=400, detail="Libro no disponible")
+        libro = cursor.fetchone()
 
-            devuelto = 1 if prestamo.devuelto else 0
-            
-            fecha_devolucion = prestamo.fecha_devolucion
-            if isinstance(fecha_devolucion, str):
-                try:
-                    fecha_devolucion = date.fromisoformat(fecha_devolucion)
-                except ValueError:
-                    raise HTTPException(status_code=400, detail="Formato de fecha_devolucion inválido. Use YYYY-MM-DD.")
+        if not libro or not libro['disponible']:
+            raise HTTPException(status_code=400, detail="Libro no disponible")
 
-            cursor.execute(
-                "INSERT INTO prestamo (id_libro, id_usuario, fecha_prestamo, fecha_devolucion, devuelto) VALUES (%s, %s, %s, %s, %s)",
-                (prestamo.id_libro, prestamo.id_usuario, date.today(), fecha_devolucion, devuelto)
-            )
-            
-            cursor.execute(
-                "UPDATE libro SET disponible = FALSE WHERE id = %s",
-                (prestamo.id_libro,)
-            )
-            
-            conexion.commit()
-            return {"mensaje": "Préstamo registrado"}
+        devuelto = 1 if prestamo.devuelto else 0
+
+        fecha_devolucion = prestamo.fecha_devolucion
+        if isinstance(fecha_devolucion, str):
+            try:
+                fecha_devolucion = date.fromisoformat(fecha_devolucion)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Formato de fecha_devolucion inválido. Use YYYY-MM-DD.")
+
+        cursor.execute(
+            "INSERT INTO prestamo (id_libro, id_usuario, fecha_prestamo, fecha_devolucion, devuelto) VALUES (%s, %s, %s, %s, %s)",
+            (prestamo.id_libro, prestamo.id_usuario, date.today(), fecha_devolucion, devuelto)
+        )
+
+        cursor.execute(
+            "UPDATE libro SET disponible = FALSE WHERE id = %s",
+            (prestamo.id_libro,)
+        )
+
+        conexion.commit()
+
+        # Crear notificación automática
+        notificacion_servicio = ServicioNotificaciones()
+        notificacion_servicio.crear(
+            usuario_id=prestamo.id_usuario,
+            mensaje="Se ha registrado un nuevo préstamo a su nombre."
+        )
+
+        return {"mensaje": "Préstamo registrado"}
+
 
     def listar_prestamos(self) -> List[dict]:
         with self.bd.obtener_cursor() as (cursor, _):
