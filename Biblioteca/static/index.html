@@ -15,7 +15,7 @@
             --warning: #f6c23e;
             --danger: #e74a3b;
             --reportes: #6f42c1;
-            --notificaciones: #fd7e14; 
+            --notificaciones: #fd7e14;
         }
         .card-header {
             font-weight: 600;
@@ -66,7 +66,7 @@
             color: white;
         }
         .btn-notificaciones:hover {
-            background-color: #e06c12; /* Tono más oscuro para hover */
+            background-color: #e06c12;
             color: white;
         }
         .btn-tipo-reporte {
@@ -78,6 +78,154 @@
             background-color: #b7e004;
             color: black;
         }
+        .btn-info {
+            color: white
+        }
+        .btn-info:hover {
+            color:white
+        }
+        /* Estilos para el interruptor de modo claro/oscuro */
+        .toggle {
+            background-color: #fff;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 50px 20px rgba(0, 0, 0, 0.1);
+            line-height: 1;
+            margin-left: 10px;
+        }
+        .input {
+            display: none;
+        }
+        .icon {
+            grid-column: 1 / 1;
+            grid-row: 1 / 1;
+            transition: transform 500ms;
+            line-height: 0.1;
+        }
+        .icon--moon {
+            transform: scale(0);
+        }
+        .icon--sun {
+            transition-delay: 200ms;
+        }
+        #switch:checked + .icon--sun {
+            transform: rotate(360deg) scale(0);
+        }
+        #switch:checked ~ .icon--moon {
+            transition-delay: 200ms;
+            transform: scale(1) rotate(360deg);
+        }
+        /* Estilos para modo oscuro */
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        body.dark-mode .card {
+            background-color: #2d2d2d;
+            border-color: #444;
+        }
+        body.dark-mode .card-header {
+            background-color: #3a3a3a;
+            color: #ffffff;
+        }
+        body.dark-mode .table-light {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+        body.dark-mode .table-hover tbody tr:hover {
+            background-color: #3a3a3a;
+        }
+        body.dark-mode .btn-primary {
+            background-color: #5a6ed1;
+            border-color: #5a6ed1;
+        }
+        body.dark-mode .btn-primary:hover {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+        body.dark-mode .btn-success {
+            background-color: #14a66e;
+            border-color: #14a66e;
+        }
+        body.dark-mode .btn-success:hover {
+            background-color: #16ad76;
+            border-color: #16ad76;
+        }
+        body.dark-mode .btn-info {
+            background-color: #2e9cac;
+            border-color: #2e9cac;
+        }
+        body.dark-mode .btn-info:hover {
+            background-color: #36b9cc;
+            border-color: #36b9cc;
+        }
+        body.dark-mode .bg-reportes {
+            background-color: var(--reportes) !important;
+        }
+        body.dark-mode .bg-notificaciones {
+            background-color: var(--notificaciones) !important;
+        }
+        body.dark-mode .btn-reportes {
+            background-color: #5a407b;
+            border-color: #5a407b;
+        }
+        body.dark-mode .btn-reportes:hover {
+            background-color: #563d7c;
+            border-color: #563d7c;
+        }
+        body.dark-mode .btn-notificaciones {
+            background-color: #d66b10;
+            border-color: #d66b10;
+        }
+        body.dark-mode .btn-notificaciones:hover {
+            background-color: #e06c12;
+            border-color: #e06c12;
+        }
+        body.dark-mode .btn-tipo-reporte {
+            background-color: #a8cc03;
+            border-color: #a8cc03;
+        }
+        body.dark-mode .btn-tipo-reporte:hover {
+            background-color: #b7e004;
+            border-color: #b7e004;
+        }
+        body.dark-mode .modal-content {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+        body.dark-mode .modal-header {
+            border-bottom-color: #444;
+        }
+        body.dark-mode .modal-footer {
+            border-top-color: #444;
+        }
+        body.dark-mode .form-control {
+            background-color: #3a3a3a;
+            color: #ffffff;
+            border-color: #444;
+        }
+        body.dark-mode .form-control:focus {
+            background-color: #3a3a3a;
+            color: #ffffff;
+            border-color: #5a6ed1;
+        }
+        body.dark-mode .nav-tabs .nav-link.active {
+            background-color: #3a3a3a;
+            color: #ffffff;
+        }
+        body.dark-mode .nav-tabs .nav-link {
+            color: #ffffff;
+        }
+        body.dark-mode .nav-tabs {
+            border-bottom-color: #444;
+        }
+        body.dark-mode .text-gray-800 {
+            color: #ffffff !important;
+        }
     </style>
 </head>
 <body>
@@ -87,9 +235,43 @@
 
     <div class="container-fluid py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0 text-gray-800">
-                <i class="bi bi-book"></i> Sistema de Biblioteca
-            </h1>
+            <div class="d-flex align-items-center">
+                <h1 class="h3 mb-0 text-gray-800">
+                    <i class="bi bi-book"></i> Sistema de Biblioteca
+                </h1>
+                <label for="switch" class="toggle">
+                    <input type="checkbox" class="input" id="switch" />
+                    <div class="icon icon--sun">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            width="32"
+                            height="32"
+                            style="color: #ffcc00;" <!-- Añadido color amarillo para mejor visibilidad -->
+                        >
+                            <path
+                                d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"
+                            ></path>
+                        </svg>
+                    </div>
+                    <div class="icon icon--moon">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            width="32"
+                            height="32"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z"
+                                clip-rule="evenodd"
+                            ></path>
+                        </svg>
+                    </div>
+                </label>
+            </div>
             <div>
                 <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#modalLibro">
                     <i class="bi bi-plus-circle"></i> Libro
@@ -537,7 +719,8 @@
             selectLibro: document.getElementById('prestamoLibro'),
             selectUsuario: document.getElementById('prestamoUsuario'),
             selectPrestamoComprobante: document.getElementById('prestamoComprobante'),
-            selectNotificacionUsuario: document.getElementById('notificacionUsuario')
+            selectNotificacionUsuario: document.getElementById('notificacionUsuario'),
+            switchMode: document.getElementById('switch')
         };
 
         // Funciones de utilidad
@@ -860,6 +1043,13 @@
                 } catch (error) {
                     console.error('Error enviando notificación:', error);
                 }
+            },
+
+            toggleDarkMode() {
+                const isDarkMode = DOM.switchMode.checked;
+                document.body.classList.toggle('dark-mode', isDarkMode);
+                // Ajustar el texto según el modo
+                document.querySelector('.text-gray-800').classList.toggle('text-white', isDarkMode);
             }
         };
 
@@ -1033,6 +1223,9 @@
         document.getElementById('modalNotificacion').addEventListener('hidden.bs.modal', () => {
             DOM.formNotificacion.reset();
         });
+
+        // Evento para el interruptor de modo oscuro
+        DOM.switchMode.addEventListener('change', () => controlador.toggleDarkMode());
 
         // Inicialización
         document.addEventListener('DOMContentLoaded', () => {
