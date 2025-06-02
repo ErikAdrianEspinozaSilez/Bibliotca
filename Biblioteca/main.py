@@ -541,6 +541,24 @@ def crear_usuario(usuario: UsuarioCreate):
         "nombre": usuario.nombre,
         "correo": usuario.correo
     })
+@app.put("/usuarios/{id}")
+def actualizar_usuario(id: int, usuario: UsuarioCreate):
+    usuarios = servicio_usuarios.listar()
+    if not any(u["id"] == id for u in usuarios):
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    servicio_usuarios.bd.ejecutar(
+        "UPDATE usuario SET nombre = %s, correo = %s WHERE id = %s",
+        (usuario.nombre, usuario.correo, id)
+    )
+    return {"mensaje": "Usuario actualizado correctamente"}
+
+@app.delete("/usuarios/{id}")
+def eliminar_usuario(id: int):
+    usuarios = servicio_usuarios.listar()
+    if not any(u["id"] == id for u in usuarios):
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    servicio_usuarios.bd.ejecutar("DELETE FROM usuario WHERE id = %s", (id,))
+    return {"mensaje": "Usuario eliminado correctamente"}
 
 # Inventario
 @app.get("/inventario/disponibles/", response_model=List[Libro])
