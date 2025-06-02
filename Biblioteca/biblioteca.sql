@@ -184,8 +184,13 @@ ALTER TABLE `usuario`
 --
 -- Filtros para la tabla `notificaciones`
 --
-ALTER TABLE `notificaciones`
-  ADD CONSTRAINT `notificaciones_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuario` (`id`);
+ALTER TABLE notificaciones
+DROP FOREIGN KEY notificaciones_ibfk_1;
+
+ALTER TABLE notificaciones
+ADD CONSTRAINT notificaciones_ibfk_1
+FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `prestamo`
